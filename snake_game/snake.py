@@ -45,3 +45,9 @@ class Snake:
     def down(self):
         if self.head.heading() != UP:
             self.head.setheading(DOWN)
+
+    def increase(self):
+        new_segment = Turtle("square")
+        new_segment.color("white")
+        new_segment.penup()
+        self.segments.append(new_segment)

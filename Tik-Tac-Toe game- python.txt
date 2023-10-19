@@ -1,0 +1,66 @@
+import socket
+import threading
+
+# Tic-Tac-Toe game logic
+class TicTacToe:
+    def __init__(self):
+        self.board = [' ' for _ in range(9)]
+        self.current_player = 'X'
+
+    def make_move(self, move, player):
+        if 0 <= move < 9 and self.board[move] == ' ':
+            self.board[move] = player
+            return True
+        return False
+
+    def is_winner(self, player):
+        winning_combinations = [(0, 1, 2), (3, 4, 5), (6, 7, 8),
+                                (0, 3, 6), (1, 4, 7), (2, 5, 8),
+                                (0, 4, 8), (2, 4, 6)]
+        for combo in winning_combinations:
+            if all(self.board[i] == player for i in combo):
+                return True
+        return False
+
+    def is_draw(self):
+        return ' ' not in self.board
+
+# Server
+def handle_client(client, player):
+    while True:
+        try:
+            move = client.recv(1024).decode()
+            if game.make_move(int(move), player):
+                client.send(game.board.encode())
+                if game.is_winner(player):
+                    client.send("You win!".encode())
+                    break
+                elif game.is_draw():
+                    client.send("It's a draw!".encode())
+                    break
+            else:
+                client.send("Invalid move. Try again.".encode())
+        except:
+            break
+
+# Setup the server
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(("0.0.0.0", 8080))
+server.listen(2)
+
+print("Server is listening for connections...")
+
+# Accept two clients
+client1, addr1 = server.accept()
+client1.send("You are X".encode())
+client2, addr2 = server.accept()
+client2.send("You are O".encode())
+
+game = TicTacToe()
+
+# Start separate threads for each player
+thread1 = threading.Thread(target=handle_client, args=(client1, 'X'))
+thread2 = threading.Thread(target=handle_client, args=(client2, 'O'))
+
+thread1.start()
+thread2.start()
